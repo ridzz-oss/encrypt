@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1020">
+  <title>File Obfuscator</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, system-ui, Arial, sans-serif; }
+    * { box-sizing: border-box; }
+    body {
+      min-height: 100vh; margin: 0; padding: 24px; display: grid; place-items: center;
+      color: #eef2ff; background: #0b1020;
+    }
+    .app { width: min(100%, 460px); }
+    h1 { margin: 0 0 8px; font-size: 25px; letter-spacing: -.6px; }
+    .sub { margin: 0 0 22px; color: #98a3bd; font-size: 14px; line-height: 1.6; }
+    .drop-zone {
+      min-height: 190px; padding: 28px; display: grid; place-items: center; text-align: center;
+      border: 1px dashed #465474; border-radius: 16px; background: #111a2e;
+      cursor: pointer; transition: .2s ease;
+    }
+    .drop-zone:hover, .drop-zone.dragover { border-color: #7c8cff; background: #17213b; }
+    .upload-icon { width: 42px; height: 42px; margin-bottom: 12px; color: #9ba8ff; }
+    .drop-title { font-weight: 650; font-size: 15px; }
+    .drop-hint { margin-top: 7px; color: #8e9ab4; font-size: 12px; }
+    #fileInput { display: none; }
+    .status {
+      display: none; margin-top: 14px; padding: 13px 14px; border: 1px solid #293653;
+      border-radius: 12px; background: #111a2e; font-size: 13px; line-height: 1.5;
+    }
+    .status.show { display: block; }
+    .status.error { color: #ff9b9b; border-color: #603b4a; }
+    .file-name { overflow-wrap: anywhere; color: #dce3f7; font-weight: 600; }
+    .download {
+      display: none; width: 100%; margin-top: 12px; padding: 13px 16px; border: 0; border-radius: 11px;
+      color: #0c1223; background: #aab5ff; font-size: 14px; font-weight: 700; cursor: pointer;
+    }
+    .download.show { display: block; }
+    .note { margin-top: 18px; color: #75819b; font-size: 11px; line-height: 1.6; }
+    .engine { margin-top: 14px; color: #71809e; font-size: 11px; text-align: center; }
+    @media (max-width: 480px) { body { padding: 18px; } h1 { font-size: 22px; } }
+  </style>
+  <script defer src="https://cdn.jsdelivr.net/npm/javascript-obfuscator@5.8.1/dist/index.browser.js"></script>
+  <script defer src="./index.js"></script>
+</head>
+<body>
+  <main class="app">
+    <h1>File Obfuscator</h1>
+    <p class="sub">Samarkan file JavaScript atau HTML langsung dari browser.</p>
+
+    <label class="drop-zone" id="dropZone" for="fileInput">
+      <span>
+        <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 16V4m-5 5 5-5 5 5"></path><path d="M20 16.5v2A1.5 1.5 0 0 1 18.5 20h-13A1.5 1.5 0 0 1 4 18.5v-2"></path>
+        </svg>
+        <span class="drop-title">Pilih atau jatuhkan file di sini</span>
+        <span class="drop-hint">Format .JS, .HTML, .HTM</span>
+      </span>
+    </label>
+    <input id="fileInput" type="file" accept=".js,.html,.htm,text/javascript,text/html">
+
+    <div class="status" id="status" role="status" aria-live="polite"></div>
+    <a class="download" id="downloadBtn">Download hasil</a>
+    <p class="note">File diproses di browser dan tidak diunggah ke server. HTML dibungkus dalam loader Base64; JavaScript di-obfuscate.</p>
+    <div class="engine" id="engineStatus">Menyiapkan engine...</div>
+  </main>
+</body>
+</html>
