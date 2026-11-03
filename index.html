@@ -1,69 +1,516 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b1020">
-  <title>File Obfuscator</title>
+  <meta name="theme-color" content="#101319">
+  <meta name="color-scheme" content="dark">
+  <title>Flowt — File Obfuscator</title>
   <style>
-    :root { color-scheme: dark; font-family: Inter, system-ui, Arial, sans-serif; }
     * { box-sizing: border-box; }
+    html { min-width: 0; background: #101319; }
     body {
-      min-height: 100vh; margin: 0; padding: 24px; display: grid; place-items: center;
-      color: #eef2ff; background: #0b1020;
+      margin: 0;
+      min-width: 0;
+      min-height: 100vh;
+      background: #101319;
+      color: #edf0f4;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
     }
-    .app { width: min(100%, 460px); }
-    h1 { margin: 0 0 8px; font-size: 25px; letter-spacing: -.6px; }
-    .sub { margin: 0 0 22px; color: #98a3bd; font-size: 14px; line-height: 1.6; }
-    .drop-zone {
-      min-height: 190px; padding: 28px; display: grid; place-items: center; text-align: center;
-      border: 1px dashed #465474; border-radius: 16px; background: #111a2e;
-      cursor: pointer; transition: .2s ease;
+    button, input { font: inherit; }
+    button { -webkit-tap-highlight-color: transparent; }
+    .page {
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 24px 18px 32px;
     }
-    .drop-zone:hover, .drop-zone.dragover { border-color: #7c8cff; background: #17213b; }
-    .upload-icon { width: 42px; height: 42px; margin-bottom: 12px; color: #9ba8ff; }
-    .drop-title { font-weight: 650; font-size: 15px; }
-    .drop-hint { margin-top: 7px; color: #8e9ab4; font-size: 12px; }
-    #fileInput { display: none; }
-    .status {
-      display: none; margin-top: 14px; padding: 13px 14px; border: 1px solid #293653;
-      border-radius: 12px; background: #111a2e; font-size: 13px; line-height: 1.5;
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 42px;
     }
-    .status.show { display: block; }
-    .status.error { color: #ff9b9b; border-color: #603b4a; }
-    .file-name { overflow-wrap: anywhere; color: #dce3f7; font-weight: 600; }
-    .download {
-      display: none; width: 100%; margin-top: 12px; padding: 13px 16px; border: 0; border-radius: 11px;
-      color: #0c1223; background: #aab5ff; font-size: 14px; font-weight: 700; cursor: pointer;
+    .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .brand-mark {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      flex: 0 0 34px;
+      border: 1px solid #303844;
+      border-radius: 9px;
+      background: #1a2029;
+      color: #a6e8df;
+      font-size: 17px;
+      font-weight: 800;
     }
-    .download.show { display: block; }
-    .note { margin-top: 18px; color: #75819b; font-size: 11px; line-height: 1.6; }
-    .engine { margin-top: 14px; color: #71809e; font-size: 11px; text-align: center; }
-    @media (max-width: 480px) { body { padding: 18px; } h1 { font-size: 22px; } }
+    .brand-name { font-size: 15px; font-weight: 750; letter-spacing: .04em; }
+    .brand-sub { color: #89929f; font-size: 10px; letter-spacing: .13em; }
+    .status-pill {
+      flex: 0 0 auto;
+      padding: 5px 9px;
+      border: 1px solid #2b433f;
+      border-radius: 20px;
+      color: #a6e8df;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+    .intro { margin-bottom: 22px; }
+    .eyebrow {
+      margin: 0 0 8px;
+      color: #91cfc6;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+    h1 { margin: 0; font-size: 29px; line-height: 1.2; letter-spacing: -.7px; }
+    .intro-text { margin: 9px 0 0; color: #929ba8; font-size: 13px; }
+    .panel {
+      padding: 18px;
+      border: 1px solid #2a303a;
+      border-radius: 13px;
+      background: #171c24;
+    }
+    .section-title { margin: 0 0 11px; color: #e8ebef; font-size: 13px; font-weight: 700; }
+    .dropzone {
+      position: relative;
+      display: flex;
+      min-height: 156px;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      padding: 20px 14px;
+      border: 1px dashed #46515f;
+      border-radius: 10px;
+      background: #141922;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .12s ease, background .12s ease;
+    }
+    .dropzone.dragover { border-color: #91cfc6; background: #19232a; }
+    .upload-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 39px;
+      height: 39px;
+      margin-bottom: 10px;
+      border: 1px solid #333e49;
+      border-radius: 10px;
+      color: #a6e8df;
+      font-size: 19px;
+    }
+    .drop-main { color: #e6eaf0; font-size: 13px; font-weight: 650; }
+    .drop-sub { margin-top: 4px; color: #87919f; font-size: 11px; }
+    .dropzone input { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; }
+    .file-card {
+      display: none;
+      align-items: center;
+      gap: 11px;
+      margin-top: 12px;
+      padding: 11px 12px;
+      border: 1px solid #303946;
+      border-radius: 9px;
+      background: #141922;
+    }
+    .file-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 35px;
+      height: 35px;
+      flex: 0 0 35px;
+      border-radius: 8px;
+      background: #222c35;
+      color: #a6e8df;
+      font-size: 11px;
+      font-weight: 750;
+    }
+    .file-info { min-width: 0; flex: 1; }
+    .file-name { overflow: hidden; color: #e8ebef; font-size: 12px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+    .file-size { margin-top: 2px; color: #8993a0; font-size: 11px; }
+    .remove-btn {
+      width: 32px;
+      height: 32px;
+      flex: 0 0 32px;
+      border: 1px solid #343d49;
+      border-radius: 7px;
+      background: transparent;
+      color: #aab2bd;
+      cursor: pointer;
+    }
+    .settings { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 19px; }
+    .settings-label { color: #e8ebef; font-size: 12px; font-weight: 650; }
+    .settings-help { margin-top: 3px; color: #87919f; font-size: 10px; }
+    .method-select {
+      width: 145px;
+      max-width: 48%;
+      padding: 9px 28px 9px 10px;
+      border: 1px solid #38424e;
+      border-radius: 8px;
+      outline: none;
+      background: #111720;
+      color: #e8ebef;
+      font-size: 12px;
+    }
+    .method-select:focus { border-color: #91cfc6; }
+    .config-note {
+      margin-top: 12px;
+      padding: 10px 11px;
+      border-left: 2px solid #608d86;
+      background: #141b22;
+      color: #929daa;
+      font-size: 10px;
+    }
+    .config-note strong { color: #cbd4dc; font-weight: 650; }
+    .action-btn {
+      display: block;
+      width: 100%;
+      min-height: 44px;
+      margin-top: 18px;
+      padding: 11px 14px;
+      border: 1px solid #9bded4;
+      border-radius: 8px;
+      background: #a6e8df;
+      color: #101817;
+      font-size: 13px;
+      font-weight: 750;
+      cursor: pointer;
+    }
+    .action-btn:disabled { border-color: #39424c; background: #333b45; color: #9099a5; cursor: not-allowed; }
+    .action-btn:active:not(:disabled) { background: #8fd3c9; }
+    .message {
+      display: none;
+      margin-top: 13px;
+      padding: 10px 12px;
+      border: 1px solid #35413f;
+      border-radius: 8px;
+      background: #17211f;
+      color: #c5e4dd;
+      font-size: 11px;
+      overflow-wrap: anywhere;
+    }
+    .message.error { border-color: #583c40; background: #241a1e; color: #f0b9bd; }
+    .result-card {
+      display: none;
+      margin-top: 14px;
+      padding: 13px;
+      border: 1px solid #34443f;
+      border-radius: 9px;
+      background: #141d1c;
+    }
+    .result-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .result-title { color: #d8eee8; font-size: 12px; font-weight: 700; }
+    .result-tag { color: #9cd9cb; font-size: 10px; }
+    .result-name { margin-top: 8px; color: #aab8b5; font-size: 11px; overflow-wrap: anywhere; }
+    .download-link {
+      display: block;
+      margin-top: 11px;
+      padding: 10px 12px;
+      border: 1px solid #45635d;
+      border-radius: 7px;
+      background: #1d302c;
+      color: #b9eee3;
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
+      text-decoration: none;
+    }
+    .footnote { margin: 17px 2px 0; color: #707b88; font-size: 10px; text-align: center; }
+    .footnote span { color: #9ba5b1; }
+    @media (max-width: 420px) {
+      .page { padding: 17px 12px 24px; }
+      .topbar { margin-bottom: 32px; }
+      h1 { font-size: 25px; }
+      .panel { padding: 13px; }
+      .dropzone { min-height: 144px; }
+      .status-pill { padding: 4px 7px; font-size: 10px; }
+    }
+    @media (max-width: 280px) {
+      .page { padding-right: 8px; padding-left: 8px; }
+      .brand-sub { font-size: 9px; }
+      .panel { padding: 10px; }
+      .settings { align-items: flex-start; flex-direction: column; }
+      .method-select { width: 100%; max-width: 100%; }
+    }
   </style>
-  <script defer src="https://cdn.jsdelivr.net/npm/javascript-obfuscator@5.8.1/dist/index.browser.js"></script>
-  <script defer src="./index.js"></script>
 </head>
 <body>
-  <main class="app">
-    <h1>File Obfuscator</h1>
-    <p class="sub">Samarkan file JavaScript atau HTML langsung dari browser.</p>
+  <main class="page">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">F</div>
+        <div>
+          <div class="brand-name">FLOWT</div>
+          <div class="brand-sub">FILE OBFUSCATOR</div>
+        </div>
+      </div>
+      <div class="status-pill">● Local processing</div>
+    </header>
 
-    <label class="drop-zone" id="dropZone" for="fileInput">
-      <span>
-        <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M12 16V4m-5 5 5-5 5 5"></path><path d="M20 16.5v2A1.5 1.5 0 0 1 18.5 20h-13A1.5 1.5 0 0 1 4 18.5v-2"></path>
-        </svg>
-        <span class="drop-title">Pilih atau jatuhkan file di sini</span>
-        <span class="drop-hint">Format .JS, .HTML, .HTM</span>
-      </span>
-    </label>
-    <input id="fileInput" type="file" accept=".js,.html,.htm,text/javascript,text/html">
+    <section class="intro">
+      <p class="eyebrow">SOURCE CODE TOOL</p>
+      <h1>Obfuscate your file.</h1>
+      <p class="intro-text">Samarkan kode sumber dengan proses langsung melalui server lokal.</p>
+    </section>
 
-    <div class="status" id="status" role="status" aria-live="polite"></div>
-    <a class="download" id="downloadBtn">Download hasil</a>
-    <p class="note">File diproses di browser dan tidak diunggah ke server. HTML dibungkus dalam loader Base64; JavaScript di-obfuscate.</p>
-    <div class="engine" id="engineStatus">Menyiapkan engine...</div>
+    <section class="panel">
+      <h2 class="section-title">Upload file</h2>
+      <label class="dropzone" id="dropzone" for="fileInput">
+        <span class="upload-icon">↑</span>
+        <span class="drop-main">Pilih file atau tarik ke sini</span>
+        <span class="drop-sub">Format .JS dan .HTML · Maksimal 10 MiB</span>
+        <input id="fileInput" type="file" accept=".js,.html,text/javascript,text/html">
+      </label>
+
+      <div class="file-card" id="fileCard">
+        <div class="file-icon" id="fileIcon">JS</div>
+        <div class="file-info">
+          <div class="file-name" id="fileName">-</div>
+          <div class="file-size" id="fileSize">-</div>
+        </div>
+        <button class="remove-btn" id="removeBtn" type="button" aria-label="Hapus file">×</button>
+      </div>
+
+      <div class="settings">
+        <div>
+          <div class="settings-label">Metode obfuscation</div>
+          <div class="settings-help">Pilih metode yang ingin digunakan.</div>
+        </div>
+        <select class="method-select" id="methodSelect" aria-label="Metode obfuscation">
+          <option value="flowt">Flowt</option>
+        </select>
+      </div>
+
+      <div class="config-note">
+        <strong>Flowt · Moderate</strong><br>
+        Variable renaming, string concealing, control flow, opaque predicates, dan transformasi terpilih lainnya.
+      </div>
+
+      <button class="action-btn" id="startBtn" type="button" disabled>Obfuscate file</button>
+      <div class="message" id="message" role="status" aria-live="polite"></div>
+
+      <div class="result-card" id="resultCard">
+        <div class="result-head">
+          <span class="result-title">Obfuscation selesai</span>
+          <span class="result-tag">READY</span>
+        </div>
+        <div class="result-name" id="resultName"></div>
+        <a class="download-link" id="downloadLink" href="#" download>Download hasil</a>
+      </div>
+    </section>
+
+    <p class="footnote">Mendukung <span>JavaScript</span> dan <span>HTML</span>. Hasil tetap perlu diuji sebelum digunakan.</p>
   </main>
+
+  <script>
+    (function () {
+      var MAX_INPUT_BYTES = 10 * 1024 * 1024;
+      var fileInput = document.getElementById('fileInput');
+      var dropzone = document.getElementById('dropzone');
+      var fileCard = document.getElementById('fileCard');
+      var fileIcon = document.getElementById('fileIcon');
+      var fileName = document.getElementById('fileName');
+      var fileSize = document.getElementById('fileSize');
+      var removeBtn = document.getElementById('removeBtn');
+      var startBtn = document.getElementById('startBtn');
+      var methodSelect = document.getElementById('methodSelect');
+      var message = document.getElementById('message');
+      var resultCard = document.getElementById('resultCard');
+      var resultName = document.getElementById('resultName');
+      var downloadLink = document.getElementById('downloadLink');
+      var selectedFile = null;
+      var currentBlobUrl = null;
+
+      function formatBytes(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+      }
+
+      function getExtension(name) {
+        var dot = name.lastIndexOf('.');
+        return dot >= 0 ? name.slice(dot + 1).toLowerCase() : '';
+      }
+
+      function showMessage(text, isError) {
+        message.style.display = 'block';
+        message.className = isError ? 'message error' : 'message';
+        message.textContent = text;
+      }
+
+      function clearMessage() {
+        message.style.display = 'none';
+        message.textContent = '';
+        message.className = 'message';
+      }
+
+      function clearResult() {
+        resultCard.style.display = 'none';
+        if (currentBlobUrl) {
+          window.URL.revokeObjectURL(currentBlobUrl);
+          currentBlobUrl = null;
+        }
+        downloadLink.removeAttribute('href');
+      }
+
+      function resetFile() {
+        selectedFile = null;
+        fileInput.value = '';
+        fileCard.style.display = 'none';
+        startBtn.disabled = true;
+        clearMessage();
+        clearResult();
+      }
+
+      function setFile(file) {
+        if (!file) return;
+        var extension = getExtension(file.name);
+
+        if (extension !== 'js' && extension !== 'html') {
+          showMessage('Format tidak didukung. Pilih file .js atau .html.', true);
+          return;
+        }
+        if (file.size > MAX_INPUT_BYTES) {
+          showMessage('Ukuran file melewati batas 10 MiB.', true);
+          return;
+        }
+        if (file.size === 0) {
+          showMessage('File kosong. Pilih file lain.', true);
+          return;
+        }
+
+        selectedFile = file;
+        fileIcon.textContent = extension.toUpperCase();
+        fileName.textContent = file.name;
+        fileSize.textContent = formatBytes(file.size);
+        fileCard.style.display = 'flex';
+        startBtn.disabled = false;
+        startBtn.textContent = 'Obfuscate file';
+        clearMessage();
+        clearResult();
+      }
+
+      fileInput.addEventListener('change', function () {
+        if (fileInput.files && fileInput.files.length) setFile(fileInput.files[0]);
+      });
+
+      removeBtn.addEventListener('click', resetFile);
+
+      dropzone.addEventListener('dragover', function (event) {
+        event.preventDefault();
+        dropzone.className = 'dropzone dragover';
+      });
+      dropzone.addEventListener('dragleave', function () {
+        dropzone.className = 'dropzone';
+      });
+      dropzone.addEventListener('drop', function (event) {
+        event.preventDefault();
+        dropzone.className = 'dropzone';
+        if (event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length) {
+          setFile(event.dataTransfer.files[0]);
+        }
+      });
+
+      function parseError(xhr) {
+        try {
+          var data = JSON.parse(xhr.responseText);
+          if (data && data.error) return data.error;
+        } catch (error) {}
+        if (xhr.status === 429) return 'Server sedang penuh. Maksimal 2 proses bersamaan.';
+        if (xhr.status === 0) return 'Tidak dapat terhubung ke server. Pastikan index.js sedang berjalan.';
+        return 'Proses gagal (HTTP ' + xhr.status + ').';
+      }
+
+      function getOutputName(xhr, originalName) {
+        var headerName = xhr.getResponseHeader('X-Output-Name');
+        if (headerName) return headerName;
+        var dot = originalName.lastIndexOf('.');
+        var base = dot >= 0 ? originalName.slice(0, dot) : originalName;
+        var ext = dot >= 0 ? originalName.slice(dot + 1) : 'js';
+        return base + '.obfuscated.' + ext;
+      }
+
+      function startObfuscation() {
+        if (!selectedFile) return;
+        clearMessage();
+        clearResult();
+        startBtn.disabled = true;
+        startBtn.textContent = 'Memproses...';
+        showMessage('Sedang meng-obfuscate file. Jangan tutup halaman.', false);
+
+        var reader = new FileReader();
+        reader.onerror = function () {
+          startBtn.disabled = false;
+          startBtn.textContent = 'Obfuscate file';
+          showMessage('File tidak dapat dibaca oleh browser.', true);
+        };
+        reader.onload = function () {
+          var extension = getExtension(selectedFile.name);
+          var xhr = new XMLHttpRequest();
+          xhr.open('POST', '/api/obfuscate', true);
+          xhr.timeout = 30000;
+          xhr.setRequestHeader('Content-Type', 'text/plain; charset=utf-8');
+          xhr.setRequestHeader('X-File-Name', encodeURIComponent(selectedFile.name));
+          xhr.setRequestHeader('X-File-Kind', extension);
+          xhr.setRequestHeader('X-Obfuscation-Method', methodSelect.value);
+
+          xhr.onload = function () {
+            startBtn.disabled = false;
+            startBtn.textContent = 'Obfuscate file';
+
+            if (xhr.status < 200 || xhr.status >= 300) {
+              showMessage(parseError(xhr), true);
+              return;
+            }
+
+            try {
+              var outputBlob = new Blob([xhr.responseText], {
+                type: 'application/octet-stream'
+              });
+              currentBlobUrl = window.URL.createObjectURL(outputBlob);
+              var outputFileName = getOutputName(xhr, selectedFile.name);
+              downloadLink.href = currentBlobUrl;
+              downloadLink.setAttribute('download', outputFileName);
+              resultName.textContent = outputFileName + ' · ' + formatBytes(outputBlob.size);
+              resultCard.style.display = 'block';
+
+              var count = parseInt(xhr.getResponseHeader('X-Obfuscated-Scripts') || '0', 10);
+              if (extension === 'html' && count === 0) {
+                showMessage('File HTML berhasil diproses, tetapi tidak ditemukan JavaScript inline. Isi HTML dipertahankan; script dengan atribut src tidak diubah.', false);
+              } else if (extension === 'html') {
+                showMessage('Selesai. JavaScript inline yang di-obfuscate: ' + count + '.', false);
+              } else {
+                showMessage('Selesai. File JavaScript berhasil di-obfuscate.', false);
+              }
+            } catch (error) {
+              showMessage('Output diterima, tetapi browser tidak dapat menyiapkan file download.', true);
+            }
+          };
+
+          xhr.onerror = function () {
+            startBtn.disabled = false;
+            startBtn.textContent = 'Obfuscate file';
+            showMessage('Koneksi ke server terputus.', true);
+          };
+          xhr.ontimeout = function () {
+            startBtn.disabled = false;
+            startBtn.textContent = 'Obfuscate file';
+            showMessage('Waktu proses habis (30 detik). Coba file yang lebih kecil.', true);
+          };
+          xhr.send(reader.result);
+        };
+        reader.readAsText(selectedFile);
+      }
+
+      startBtn.addEventListener('click', startObfuscation);
+    })();
+  </script>
 </body>
 </html>
